@@ -50,6 +50,7 @@ namespace CudaRasterizer
 			const float tan_fovx, float tan_fovy,
 			const bool prefiltered,
 			float* out_color,
+			float* error_render,
 			float* depth,
 			bool antialiasing,
 			int* radii = nullptr,
