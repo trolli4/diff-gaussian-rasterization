@@ -23,6 +23,7 @@
 #include <fstream>
 #include <string>
 #include <functional>
+#include "rasterize_points.h"
 
 std::function<char*(size_t N)> resizeFunctional(torch::Tensor& t) {
     auto lambda = [&t](size_t N) {
