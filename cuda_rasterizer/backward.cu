@@ -462,11 +462,14 @@ renderCUDA(
 	const float* __restrict__ depths,
 	const float* __restrict__ final_Ts,
 	const uint32_t* __restrict__ n_contrib,
+	const float* __restrict__ error_helper,			// e_k
+	const float* __restrict__ dL_derror_render,		// grads of error_render
 	const float* __restrict__ dL_dpixels,
 	const float* __restrict__ dL_invdepths,
 	float3* __restrict__ dL_dmean2D,
 	float4* __restrict__ dL_dconic2D,
 	float* __restrict__ dL_dopacity,
+	float* __restrict__ dL_derror_helper,			// grads of error_helper
 	float* __restrict__ dL_dcolors,
 	float* __restrict__ dL_dinvdepths
 )
@@ -493,6 +496,7 @@ renderCUDA(
 	__shared__ float4 collected_conic_opacity[BLOCK_SIZE];
 	__shared__ float collected_colors[C * BLOCK_SIZE];
 	__shared__ float collected_depths[BLOCK_SIZE];
+	__shared__ float collected_errors[BLOCK_SIZE];				// ?
 
 
 	// In the forward, we stored the final value for T, the
@@ -509,10 +513,13 @@ renderCUDA(
 	float dL_dpixel[C];
 	float dL_invdepth;
 	float accum_invdepth_rec = 0;
+	float accum_error_rec = 0;									// ??; in reality always 0
+	float dL_error;												// gradient of error sum of specific pixel
 	if (inside)
 	{
 		for (int i = 0; i < C; i++)
 			dL_dpixel[i] = dL_dpixels[i * H * W + pix_id];
+		dL_error = dL_derror_render[pix_id];					// gradient of error sum of pixel pix_id
 		if(dL_invdepths)
 		dL_invdepth = dL_invdepths[pix_id];
 	}
@@ -520,6 +527,7 @@ renderCUDA(
 	float last_alpha = 0;
 	float last_color[C] = { 0 };
 	float last_invdepth = 0;
+	float last_error_contribution = 0							// e_k of predecessor; in reality always 0
 
 
 	// Gradient of pixel coordinate w.r.t. normalized 
@@ -543,6 +551,7 @@ renderCUDA(
 			for (int i = 0; i < C; i++)
 				collected_colors[i * BLOCK_SIZE + block.thread_rank()] = colors[coll_id * C + i];
 
+			collected_errors[block.thread_rank()] = error_helper[coll_id];			// fetches e_ks
 			if(dL_invdepths)
 			collected_depths[block.thread_rank()] = depths[coll_id];
 		}
@@ -592,6 +601,14 @@ renderCUDA(
 				// many that were affected by this Gaussian.
 				atomicAdd(&(dL_dcolors[global_id * C + ch]), dchannel_dcolor * dL_dchannel);
 			}
+
+			// Propagate gradients from render_error per pixel to per Gaussian render_error
+			const float err = collected_errors[j]																// e_k of Gaussian j
+			accum_error_rec = last_alpha * last_error_contribution + (1.f - last_alpha) * accum_error_rec;		// ??; in reality always 0 
+			last_error_contribution = err;
+			dL_dalpha += (err - accum_error_rec) * dL_error;													// (err - accum_error_rec) = 0 bcs e_ks are all 0
+			atomicAdd(&(dL_derror_helper[global_id]), dchannel_dcolor * dL_error);								// 'dchannel_dcolor' = alpha * T	->	
+
 			// Propagate gradients from inverse depth to alphaas and
 			// per Gaussian inverse depths
 			if (dL_dinvdepths)
@@ -723,11 +740,14 @@ void BACKWARD::render(
 	const float* depths,
 	const float* final_Ts,
 	const uint32_t* n_contrib,
+	const float* error_helper,			// e_k
+	const float* dL_derror_render,		// grads of error_render
 	const float* dL_dpixels,
 	const float* dL_invdepths,
 	float3* dL_dmean2D,
 	float4* dL_dconic2D,
 	float* dL_dopacity,
+	float* dL_derror_helper,			// grads of error_helper
 	float* dL_dcolors,
 	float* dL_dinvdepths)
 {
@@ -742,11 +762,14 @@ void BACKWARD::render(
 		depths,
 		final_Ts,
 		n_contrib,
+		error_helper,			// e_k
+		dL_derror_render,		// grads of error_render
 		dL_dpixels,
 		dL_invdepths,
 		dL_dmean2D,
 		dL_dconic2D,
 		dL_dopacity,
+		dL_derror_helper,		// grads of error_helper
 		dL_dcolors,
 		dL_dinvdepths
 		);

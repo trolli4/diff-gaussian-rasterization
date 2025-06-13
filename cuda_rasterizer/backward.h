@@ -32,11 +32,14 @@ namespace BACKWARD
 		const float* depths,
 		const float* final_Ts,
 		const uint32_t* n_contrib,
+		const float* error_helper,			// e_k
+		const float* dL_derror_render,		// grads of error_render
 		const float* dL_dpixels,
 		const float* dL_invdepths,
 		float3* dL_dmean2D,
 		float4* dL_dconic2D,
 		float* dL_dopacity,
+		float* dL_derror_helper,			// grads of error_helper
 		float* dL_dcolors,
 		float* dL_dinvdepths);
 

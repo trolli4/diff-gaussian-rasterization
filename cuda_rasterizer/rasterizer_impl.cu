@@ -358,6 +358,7 @@ void CudaRasterizer::Rasterizer::backward(
 	const float scale_modifier,
 	const float* rotations,
 	const float* cov3D_precomp,
+	const float* error_helper,			// e_k
 	const float* viewmatrix,
 	const float* projmatrix,
 	const float* campos,
@@ -368,6 +369,7 @@ void CudaRasterizer::Rasterizer::backward(
 	char* img_buffer,
 	const float* dL_dpix,
 	const float* dL_invdepths,
+	const float* dL_derror_render,	// grad of error_render
 	float* dL_dmean2D,
 	float* dL_dconic,
 	float* dL_dopacity,
@@ -378,6 +380,7 @@ void CudaRasterizer::Rasterizer::backward(
 	float* dL_dsh,
 	float* dL_dscale,
 	float* dL_drot,
+	float* dL_derror_helper,			// grad of error_helper
 	bool antialiasing,
 	bool debug)
 {
@@ -413,6 +416,9 @@ void CudaRasterizer::Rasterizer::backward(
 		geomState.depths,
 		imgState.accum_alpha,
 		imgState.n_contrib,
+		error_helper,			// e_k
+		dL_derror_render,		// grads of error_render
+		dL_derror_helper,		// grads of error_helper
 		dL_dpix,
 		dL_invdepths,
 		(float3*)dL_dmean2D,

@@ -68,6 +68,7 @@ namespace CudaRasterizer
 			const float scale_modifier,
 			const float* rotations,
 			const float* cov3D_precomp,
+			const float* error_helper,			// e_k
 			const float* viewmatrix,
 			const float* projmatrix,
 			const float* campos,
@@ -78,6 +79,7 @@ namespace CudaRasterizer
 			char* image_buffer,
 			const float* dL_dpix,
 			const float* dL_invdepths,
+			const float* dL_derror_render,	// grad of error_render
 			float* dL_dmean2D,
 			float* dL_dconic,
 			float* dL_dopacity,
@@ -88,6 +90,7 @@ namespace CudaRasterizer
 			float* dL_dsh,
 			float* dL_dscale,
 			float* dL_drot,
+			float* dL_derror_helper,			// grad of error_helper
 			bool antialiasing,
 			bool debug);
 	};
