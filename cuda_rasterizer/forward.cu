@@ -319,8 +319,7 @@ renderCUDA(
 	uint32_t last_contributor = 0;
 	float C[CHANNELS] = { 0 };
 
-	float contribution = 0.0f;			// used by error_render
-	// TODO: compute error_render
+	float error_contribution = 0.0f;			// sum over gaussians of e_k * w_k^{pi}; calculated for each pixel separately
 
 	float expected_invdepth = 0.0f;
 
@@ -376,6 +375,8 @@ renderCUDA(
 			for (int ch = 0; ch < CHANNELS; ch++)
 				C[ch] += features[collected_id[j] * CHANNELS + ch] * alpha * T;
 
+			error_contribution += error_helper[collected_id[j]] * alpha * T;			// e_k * w_k^{pi}
+
 			if(invdepth)
 			expected_invdepth += (1 / depths[collected_id[j]]) * alpha * T;
 
@@ -398,6 +399,7 @@ renderCUDA(
 
 		if (invdepth)
 		invdepth[pix_id] = expected_invdepth;// 1. / (expected_depth + T * 1e3);
+		error_render[pix_id] = error_contribution;
 	}
 }
 
