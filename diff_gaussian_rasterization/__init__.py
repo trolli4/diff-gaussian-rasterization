@@ -139,6 +139,7 @@ class _RasterizeGaussians(torch.autograd.Function):
             grad_scales,
             grad_rotations,
             grad_cov3Ds_precomp,
+            None,                           # "grad" for error_helper
             None,
         )
 
