@@ -418,12 +418,12 @@ void CudaRasterizer::Rasterizer::backward(
 		imgState.n_contrib,
 		error_helper,			// e_k
 		dL_derror_render,		// grads of error_render
-		dL_derror_helper,		// grads of error_helper
 		dL_dpix,
 		dL_invdepths,
 		(float3*)dL_dmean2D,
 		(float4*)dL_dconic,
 		dL_dopacity,
+		dL_derror_helper,		// grads of error_helper
 		dL_dcolor,
 		dL_dinvdepth), debug);
 
