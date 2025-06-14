@@ -527,7 +527,7 @@ renderCUDA(
 	float last_alpha = 0;
 	float last_color[C] = { 0 };
 	float last_invdepth = 0;
-	float last_error_contribution = 0							// e_k of predecessor; in reality always 0
+	float last_error_contribution = 0;							// e_k of predecessor; in reality always 0
 
 
 	// Gradient of pixel coordinate w.r.t. normalized 
@@ -603,7 +603,7 @@ renderCUDA(
 			}
 
 			// Propagate gradients from render_error per pixel to per Gaussian render_error
-			const float err = collected_errors[j]																// e_k of Gaussian j
+			const float err = collected_errors[j];																// e_k of Gaussian j
 			accum_error_rec = last_alpha * last_error_contribution + (1.f - last_alpha) * accum_error_rec;		// ??; in reality always 0 
 			last_error_contribution = err;
 			dL_dalpha += (err - accum_error_rec) * dL_error;													// (err - accum_error_rec) = 0 bcs e_ks are all 0
