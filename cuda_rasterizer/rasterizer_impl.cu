@@ -216,6 +216,7 @@ int CudaRasterizer::Rasterizer::forward(
 	const float tan_fovx, float tan_fovy,
 	const bool prefiltered,
 	float* out_color,
+	float* out_opacity,
 	float* depth,
 	bool antialiasing,
 	int* radii,
@@ -336,6 +337,8 @@ int CudaRasterizer::Rasterizer::forward(
 		out_color,
 		geomState.depths,
 		depth), debug)
+
+	out_opacity = imgState.accum_alpha;			// pass residual transmittance upwards
 
 	return num_rendered;
 }
